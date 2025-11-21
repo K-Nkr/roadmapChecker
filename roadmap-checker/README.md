@@ -1,8 +1,24 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Roadmap Checker
+
+エンジニア学習の進捗を可視化し、挫折を防ぐためのロードマップ管理ツールです。
+
+## 特徴
+
+- **網羅的なロードマップ**: フロントエンドからバックエンド、DevOpsまで、モダンなWeb開発に必要なスキルセットをカバー。
+- **進捗管理**: 各項目のステータス（未着手、学習中、完了）を管理。
+- **アウトプット重視**: 「技術選定の理由」や「成果物URL」を記録することで、ポートフォリオ作成を支援。
+- **データ永続化**: ブラウザへの自動保存に加え、JSONファイルとしてのインポート/エクスポートに対応。
+
+## 技術スタック
+
+- Next.js (App Router)
+- ReactFlow (グラフ描画)
+- Tailwind CSS (スタイリング)
+- Lucide React (アイコン)
 
 ## Getting Started
 
-First, run the development server:
+開発サーバーを起動します:
 
 ```bash
 npm run dev
@@ -14,23 +30,14 @@ pnpm dev
 bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+[http://localhost:3000](http://localhost:3000) をブラウザで開いてください。
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## デプロイ
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Vercelへのデプロイが最も簡単です。
 
-## Learn More
+1. このリポジトリをGitHubにプッシュします。
+2. Vercelにログインし、"Add New Project"を選択します。
+3. リポジトリを選択し、"Deploy"をクリックします。
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+設定は自動的に検出されます。環境変数の設定は特に必要ありません。
