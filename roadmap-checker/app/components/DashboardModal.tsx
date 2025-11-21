@@ -1,6 +1,6 @@
 'use client';
 
-import { X } from 'lucide-react';
+import { X, Share2 } from 'lucide-react';
 import { INITIAL_ROADMAP, RoadmapItem } from '../data/roadmap';
 import { RoadmapProgress } from '../hooks/useRoadmapProgress';
 
@@ -58,6 +58,23 @@ export default function DashboardModal({ isOpen, onClose, progress }: DashboardM
                     <p className="mt-2 text-sm text-gray-500 dark:text-gray-400 text-right">
                         {completedItems} / {totalItems} 項目完了
                     </p>
+
+                    {/* Share Button */}
+                    <div className="mt-4 flex justify-center">
+                        <a
+                            href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(
+                                `エンジニア学習の進捗: ${overallPercentage}%達成！ 🎉\n\nロードマップ・チェッカーで学習管理中\n`
+                            )}&url=${encodeURIComponent(
+                                `${typeof window !== 'undefined' ? window.location.origin : ''}/share?progress=${overallPercentage}`
+                            )}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-2 px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+                        >
+                            <Share2 size={20} />
+                            Xでシェア
+                        </a>
+                    </div>
                 </div>
 
                 {/* Category Progress */}

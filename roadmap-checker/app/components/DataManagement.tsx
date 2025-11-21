@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import ExportSkillSheet from './ExportSkillSheet';
 
 export default function DataManagement() {
     return (
@@ -42,6 +43,7 @@ export default function DataManagement() {
                     }}
                 />
             </label>
+            <ExportSkillSheet />
         </div>
     );
 }

@@ -9,6 +9,7 @@ import ReactFlow, {
     useNodesState,
     useEdgesState,
     Position,
+    MarkerType,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import { INITIAL_ROADMAP, RoadmapItem } from '../data/roadmap';
@@ -75,7 +76,16 @@ const getLayoutedElements = (items: RoadmapItem[]) => {
                 source: depId,
                 target: item.id,
                 type: 'smoothstep',
-                animated: true,
+                animated: false,
+                markerEnd: {
+                    type: MarkerType.ArrowClosed,
+                    width: 20,
+                    height: 20,
+                },
+                style: {
+                    strokeDasharray: '5 5',
+                    strokeWidth: 2,
+                },
             });
         });
     });
