@@ -114,16 +114,28 @@ export default function RoadmapGraph() {
         setNodes((nds) =>
             nds.map((node) => {
                 const itemProgress = progress[node.id];
-                let bg = '#fff';
-                if (itemProgress?.status === 'completed') bg = '#dcfce7'; // green-100
-                else if (itemProgress?.status === 'in-progress') bg = '#dbeafe'; // blue-100
+                const status = itemProgress?.status || 'not-started';
+
+                let style = { ...node.style };
+
+                switch (status) {
+                    case 'completed':
+                        style.background = '#dcfce7'; // green-100
+                        style.border = '2px solid #22c55e'; // green-500
+                        break;
+                    case 'in-progress':
+                        style.background = '#dbeafe'; // blue-100
+                        style.border = '2px solid #3b82f6'; // blue-500
+                        break;
+                    default:
+                        style.background = '#fff';
+                        style.border = '1px solid #9ca3af'; // gray-400
+                        break;
+                }
 
                 return {
                     ...node,
-                    style: {
-                        ...node.style,
-                        background: bg,
-                    },
+                    style,
                 };
             })
         );
