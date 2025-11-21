@@ -39,5 +39,5 @@ export function useRoadmapProgress() {
         });
     };
 
-    return { progress, updateProgress, isLoaded };
+    return { progress, updateProgress, setProgress, isLoaded };
 }

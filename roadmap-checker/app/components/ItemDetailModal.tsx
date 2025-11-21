@@ -15,28 +15,51 @@ export default function ItemDetailModal({ item, isOpen, onClose, onSave, initial
     const [status, setStatus] = useState<ItemProgress['status']>('not-started');
     const [reason, setReason] = useState('');
     const [repoUrl, setRepoUrl] = useState('');
+    const [errors, setErrors] = useState<{ reason?: string; repoUrl?: string }>({});
 
     useEffect(() => {
         if (isOpen && initialData) {
             setStatus(initialData.status || 'not-started');
             setReason(initialData.reason || '');
             setRepoUrl(initialData.repoUrl || '');
+            setErrors({});
         } else if (isOpen) {
             // Reset if no data
             setStatus('not-started');
             setReason('');
             setRepoUrl('');
+            setErrors({});
         }
     }, [isOpen, initialData]);
 
     if (!isOpen || !item) return null;
 
+    const validate = () => {
+        const newErrors: { reason?: string; repoUrl?: string } = {};
+        let isValid = true;
+
+        if (status === 'completed' && !reason.trim()) {
+            newErrors.reason = '完了にするには技術選定の理由を入力してください。';
+            isValid = false;
+        }
+
+        if (repoUrl && !/^https?:\/\//.test(repoUrl)) {
+            newErrors.repoUrl = 'URLは http:// または https:// で始めてください。';
+            isValid = false;
+        }
+
+        setErrors(newErrors);
+        return isValid;
+    };
+
     const handleSave = () => {
-        onSave(item.id, {
-            status,
-            reason,
-            repoUrl
-        });
+        if (validate()) {
+            onSave(item.id, {
+                status,
+                reason,
+                repoUrl
+            });
+        }
     };
 
     return (
@@ -72,13 +95,14 @@ export default function ItemDetailModal({ item, isOpen, onClose, onSave, initial
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium mb-1">技術選定の理由</label>
+                        <label className="block text-sm font-medium mb-1">技術選定の理由 <span className="text-red-500 text-xs">{status === 'completed' ? '(必須)' : ''}</span></label>
                         <textarea
                             value={reason}
                             onChange={(e) => setReason(e.target.value)}
-                            className="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 h-24"
+                            className={`w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 h-24 ${errors.reason ? 'border-red-500' : ''}`}
                             placeholder="なぜこの技術を選んだのですか？"
                         />
+                        {errors.reason && <p className="text-red-500 text-xs mt-1">{errors.reason}</p>}
                     </div>
 
                     {item.requiredOutput && (
@@ -88,9 +112,10 @@ export default function ItemDetailModal({ item, isOpen, onClose, onSave, initial
                                 type="url"
                                 value={repoUrl}
                                 onChange={(e) => setRepoUrl(e.target.value)}
-                                className="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600"
+                                className={`w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 ${errors.repoUrl ? 'border-red-500' : ''}`}
                                 placeholder="https://github.com/username/repo"
                             />
+                            {errors.repoUrl && <p className="text-red-500 text-xs mt-1">{errors.repoUrl}</p>}
                         </div>
                     )}
                 </div>
