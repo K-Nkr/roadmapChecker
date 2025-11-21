@@ -1,13 +1,29 @@
+'use client';
+
+import { useState } from 'react';
 import RoadmapGraph from "./components/RoadmapGraph";
 import DataManagement from "./components/DataManagement";
 import ThemeToggle from "./components/ThemeToggle";
+import DashboardModal from "./components/DashboardModal";
+import { useRoadmapProgress } from "./hooks/useRoadmapProgress";
+import { BarChart3 } from 'lucide-react';
 
 export default function Home() {
+  const [isDashboardOpen, setIsDashboardOpen] = useState(false);
+  const { progress } = useRoadmapProgress();
+
   return (
     <main className="flex min-h-screen flex-col items-center justify-between p-4 md:p-24 dark:bg-gray-900 dark:text-white">
       <div className="z-10 max-w-5xl w-full items-center justify-between font-mono text-sm lg:flex">
         <h1 className="text-2xl md:text-4xl font-bold mb-4 md:mb-8 text-center lg:text-left">Roadmap Checker</h1>
         <div className="flex items-center gap-4 mb-4 lg:mb-0">
+          <button
+            onClick={() => setIsDashboardOpen(true)}
+            className="p-2 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors text-gray-700 dark:text-gray-200"
+            aria-label="Open Dashboard"
+          >
+            <BarChart3 size={20} />
+          </button>
           <DataManagement />
           <ThemeToggle />
         </div>
@@ -16,6 +32,12 @@ export default function Home() {
       <div className="w-full h-[500px] md:h-[600px] border border-gray-300 rounded-lg overflow-hidden bg-gray-50">
         <RoadmapGraph />
       </div>
+
+      <DashboardModal
+        isOpen={isDashboardOpen}
+        onClose={() => setIsDashboardOpen(false)}
+        progress={progress}
+      />
     </main >
   );
 }
