@@ -21,7 +21,7 @@ export const INITIAL_ROADMAP: RoadmapItem[] = [
     tutorials: [
       { title: 'MDN Web Docs - HTML', url: 'https://developer.mozilla.org/ja/docs/Web/HTML' },
       { title: 'MDN Web Docs - CSS', url: 'https://developer.mozilla.org/ja/docs/Web/CSS' },
-      { title: 'W3C - HTML & CSS', url: 'https://www.w3.org/standards/webdesign/htmlcss' },
+      { title: 'MDN Web Docs - Web開発を学ぶ', url: 'https://developer.mozilla.org/ja/docs/Learn' },
     ],
     children: [
       {
