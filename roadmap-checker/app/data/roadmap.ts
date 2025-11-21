@@ -64,7 +64,7 @@ export const INITIAL_ROADMAP: RoadmapItem[] = [
     title: 'JavaScript',
     description: 'Webページに動的な機能を追加するプログラミング言語。DOM操作、非同期処理（Fetch API）などを学びます。',
     requiredOutput: true,
-    dependencies: ['html-css'],
+    dependencies: ['html-css', 'git'],
     category: 'Language',
     tutorials: [
       { title: 'MDN Web Docs - JavaScript', url: 'https://developer.mozilla.org/ja/docs/Web/JavaScript' },
@@ -110,7 +110,7 @@ export const INITIAL_ROADMAP: RoadmapItem[] = [
     title: 'TypeScript',
     description: 'JavaScriptに静的型付けを加えたスーパーセット。大規模開発に必須の型安全性を学びます。',
     requiredOutput: false,
-    dependencies: ['javascript'],
+    dependencies: ['javascript', 'git'],
     category: 'Language',
     tutorials: [
       { title: 'TypeScript Official Documentation', url: 'https://www.typescriptlang.org/docs/' },
