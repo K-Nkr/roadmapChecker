@@ -188,17 +188,23 @@ export default function RoadmapGraph({ items = INITIAL_ROADMAP }: RoadmapGraphPr
                         break;
                 }
 
+
                 // Apply hover effects
                 if (hoveredNodeId) {
                     if (isHovered) {
                         style.boxShadow = '0 0 0 3px rgba(59, 130, 246, 0.5)';
-                        style.transform = 'scale(1.05)';
-                        style.transition = 'all 0.2s';
+                        style.opacity = '1';
                     } else if (isConnected) {
                         style.opacity = '1';
+                        style.boxShadow = 'none';
                     } else {
                         style.opacity = '0.3';
+                        style.boxShadow = 'none';
                     }
+                } else {
+                    // Reset hover effects when not hovering
+                    style.opacity = '1';
+                    style.boxShadow = 'none';
                 }
 
                 return {
@@ -209,38 +215,8 @@ export default function RoadmapGraph({ items = INITIAL_ROADMAP }: RoadmapGraphPr
         );
     }, [progress, isLoaded, hoveredNodeId, getConnectedNodes, setNodes]);
 
-    // Update edge styles based on hover
-    useEffect(() => {
-        const connectedNodes = getConnectedNodes(hoveredNodeId);
-
-        setEdges((eds) =>
-            eds.map((edge) => {
-                const isConnected = connectedNodes.has(edge.source) && connectedNodes.has(edge.target);
-
-                let style = {
-                    ...edge.style, // Preserve existing style properties
-                    strokeDasharray: '5 5',
-                    strokeWidth: 2,
-                    stroke: '#9ca3af',
-                };
-
-                if (hoveredNodeId) {
-                    if (isConnected) {
-                        style.stroke = '#3b82f6';
-                        style.strokeWidth = 3;
-                    } else {
-                        style.stroke = '#d1d5db';
-                    }
-                }
-
-                return {
-                    ...edge, // Preserve all edge properties including markerEnd
-                    style,
-                    animated: isConnected && !!hoveredNodeId,
-                };
-            })
-        );
-    }, [hoveredNodeId, getConnectedNodes, setEdges]);
+    // Note: Edge style updates are removed to prevent position shifting
+    // Only nodes will be highlighted on hover
 
     return (
         <div style={{ width: '100%', height: '100%', minHeight: '500px' }}>
