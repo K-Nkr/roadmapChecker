@@ -218,6 +218,7 @@ export default function RoadmapGraph({ items = INITIAL_ROADMAP }: RoadmapGraphPr
                 const isConnected = connectedNodes.has(edge.source) && connectedNodes.has(edge.target);
 
                 let style = {
+                    ...edge.style, // Preserve existing style properties
                     strokeDasharray: '5 5',
                     strokeWidth: 2,
                     stroke: '#9ca3af',
@@ -233,7 +234,7 @@ export default function RoadmapGraph({ items = INITIAL_ROADMAP }: RoadmapGraphPr
                 }
 
                 return {
-                    ...edge,
+                    ...edge, // Preserve all edge properties including markerEnd
                     style,
                     animated: isConnected && !!hoveredNodeId,
                 };
