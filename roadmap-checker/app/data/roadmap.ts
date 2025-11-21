@@ -5,6 +5,8 @@ export interface RoadmapItem {
   requiredOutput: boolean;
   dependencies: string[];
   category: 'Basic' | 'Framework' | 'Tooling' | 'Language' | 'Backend' | 'Database' | 'Testing' | 'DevOps';
+  tutorials?: { title: string; url: string }[];
+  children?: RoadmapItem[];
 }
 
 export const INITIAL_ROADMAP: RoadmapItem[] = [
@@ -16,6 +18,45 @@ export const INITIAL_ROADMAP: RoadmapItem[] = [
     requiredOutput: true,
     dependencies: [],
     category: 'Basic',
+    tutorials: [
+      { title: 'MDN Web Docs - HTML', url: 'https://developer.mozilla.org/ja/docs/Web/HTML' },
+      { title: 'MDN Web Docs - CSS', url: 'https://developer.mozilla.org/ja/docs/Web/CSS' },
+      { title: 'Progate - HTML & CSS', url: 'https://prog-8.com/languages/html' },
+    ],
+    children: [
+      {
+        id: 'semantic-html',
+        title: 'Semantic HTML',
+        description: '適切なタグ（header, main, footer, articleなど）を使用して、文書構造を意味的に記述します。',
+        requiredOutput: false,
+        dependencies: [],
+        category: 'Basic',
+      },
+      {
+        id: 'flexbox',
+        title: 'Flexbox',
+        description: '1次元のレイアウトモデル。要素の配置、整列、スペース配分を柔軟に行います。',
+        requiredOutput: false,
+        dependencies: ['semantic-html'],
+        category: 'Basic',
+      },
+      {
+        id: 'css-grid',
+        title: 'CSS Grid',
+        description: '2次元のレイアウトモデル。行と列を使用して複雑なレイアウトを構築します。',
+        requiredOutput: false,
+        dependencies: ['flexbox'],
+        category: 'Basic',
+      },
+      {
+        id: 'responsive-design',
+        title: 'Responsive Design',
+        description: 'メディアクエリを使用して、スマートフォンやタブレットなど異なる画面サイズに対応します。',
+        requiredOutput: true,
+        dependencies: ['css-grid'],
+        category: 'Basic',
+      },
+    ],
   },
   // Language
   {

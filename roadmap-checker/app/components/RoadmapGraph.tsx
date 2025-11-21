@@ -12,8 +12,8 @@ import ReactFlow, {
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import { INITIAL_ROADMAP, RoadmapItem } from '../data/roadmap';
-import ItemDetailModal from './ItemDetailModal';
 import { useRoadmapProgress } from '../hooks/useRoadmapProgress';
+import { useRouter } from 'next/navigation';
 
 const NODE_WIDTH = 180;
 const NODE_HEIGHT = 80;
@@ -83,29 +83,25 @@ const getLayoutedElements = (items: RoadmapItem[]) => {
     return { nodes, edges };
 };
 
-const { nodes: initialNodes, edges: initialEdges } = getLayoutedElements(INITIAL_ROADMAP);
+interface RoadmapGraphProps {
+    items?: RoadmapItem[];
+}
 
-export default function RoadmapGraph() {
+export default function RoadmapGraph({ items = INITIAL_ROADMAP }: RoadmapGraphProps) {
+    const { nodes: initialNodes, edges: initialEdges } = useMemo(() => getLayoutedElements(items), [items]);
     const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
     const [edges, , onEdgesChange] = useEdgesState(initialEdges);
-    const { progress, updateProgress, isLoaded } = useRoadmapProgress();
+    const { progress, isLoaded } = useRoadmapProgress();
+    const router = useRouter();
 
-    const [selectedNodeId, setSelectedNodeId] = React.useState<string | null>(null);
-    const [isModalOpen, setIsModalOpen] = React.useState(false);
+    // Reset nodes when items change
+    useEffect(() => {
+        setNodes(initialNodes);
+    }, [initialNodes, setNodes]);
 
     const onNodeClick = (_: React.MouseEvent, node: Node) => {
-        setSelectedNodeId(node.id);
-        setIsModalOpen(true);
+        router.push(`/items/${node.id}`);
     };
-
-    const handleSave = (id: string, data: any) => {
-        updateProgress(id, data);
-        setIsModalOpen(false);
-    };
-
-    const selectedItem = useMemo(() =>
-        INITIAL_ROADMAP.find(item => item.id === selectedNodeId) || null
-        , [selectedNodeId]);
 
     // Update node styles based on progress
     useEffect(() => {
@@ -142,7 +138,7 @@ export default function RoadmapGraph() {
     }, [progress, isLoaded, setNodes]);
 
     return (
-        <div style={{ width: '100%', height: '600px' }}>
+        <div style={{ width: '100%', height: '100%', minHeight: '500px' }}>
             <ReactFlow
                 nodes={nodes}
                 edges={edges}
@@ -154,13 +150,6 @@ export default function RoadmapGraph() {
                 <Background />
                 <Controls />
             </ReactFlow>
-            <ItemDetailModal
-                item={selectedItem}
-                isOpen={isModalOpen}
-                onClose={() => setIsModalOpen(false)}
-                onSave={handleSave}
-                initialData={selectedNodeId ? progress[selectedNodeId] : undefined}
-            />
         </div>
     );
 }
