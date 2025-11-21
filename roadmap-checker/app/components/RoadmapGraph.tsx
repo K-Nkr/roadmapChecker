@@ -12,82 +12,119 @@ import ReactFlow, {
     MarkerType,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
-import dagre from 'dagre';
 import { INITIAL_ROADMAP, RoadmapItem } from '../data/roadmap';
 import ItemDetailModal from './ItemDetailModal';
 import { useRoadmapProgress } from '../hooks/useRoadmapProgress';
 
 const NODE_WIDTH = 180;
 const NODE_HEIGHT = 80;
+const CATEGORY_SPACING = 300;
+const LEVEL_SPACING = 150;
+const WITHIN_CATEGORY_SPACING = 50;
 
-// Dagre-based automatic layout
+// Category-based layout algorithm
 const getLayoutedElements = (items: RoadmapItem[]) => {
-    const dagreGraph = new dagre.graphlib.Graph();
-    dagreGraph.setDefaultEdgeLabel(() => ({}));
-    dagreGraph.setGraph({
-        rankdir: 'TB', // Top to Bottom
-        nodesep: 100,
-        ranksep: 150,
-        edgesep: 50,
-    });
-
     const nodes: Node[] = [];
     const edges: Edge[] = [];
+    const itemMap = new Map(items.map((item) => [item.id, item]));
+    const levels = new Map<string, number>();
 
-    // Add nodes to dagre graph
+    // Calculate dependency levels
+    const getLevel = (id: string): number => {
+        if (levels.has(id)) return levels.get(id)!;
+        const item = itemMap.get(id);
+        if (!item || item.dependencies.length === 0) {
+            levels.set(id, 0);
+            return 0;
+        }
+        const parentLevels = item.dependencies.map(getLevel);
+        const level = Math.max(...parentLevels) + 1;
+        levels.set(id, level);
+        return level;
+    };
+
+    items.forEach((item) => getLevel(item.id));
+
+    // Group items by category and level
+    const categoryGroups = new Map<string, Map<number, RoadmapItem[]>>();
+
     items.forEach((item) => {
-        dagreGraph.setNode(item.id, { width: NODE_WIDTH, height: NODE_HEIGHT });
-
-        nodes.push({
-            id: item.id,
-            data: { label: item.title },
-            position: { x: 0, y: 0 }, // Will be set by dagre
-            sourcePosition: Position.Bottom,
-            targetPosition: Position.Top,
-            style: {
-                width: NODE_WIDTH,
-                background: '#fff',
-                border: '1px solid #777',
-                borderRadius: '8px',
-                padding: '10px',
-                textAlign: 'center',
-                fontWeight: 'bold',
-            },
-        });
-
-        // Add edges
-        item.dependencies.forEach((depId) => {
-            dagreGraph.setEdge(depId, item.id);
-            edges.push({
-                id: `${depId}-${item.id}`,
-                source: depId,
-                target: item.id,
-                type: 'smoothstep',
-                animated: false,
-                markerEnd: {
-                    type: MarkerType.ArrowClosed,
-                    width: 20,
-                    height: 20,
-                },
-                style: {
-                    strokeDasharray: '5 5',
-                    strokeWidth: 2,
-                    stroke: '#9ca3af',
-                },
-            });
-        });
+        if (!categoryGroups.has(item.category)) {
+            categoryGroups.set(item.category, new Map());
+        }
+        const levelMap = categoryGroups.get(item.category)!;
+        const level = levels.get(item.id)!;
+        if (!levelMap.has(level)) {
+            levelMap.set(level, []);
+        }
+        levelMap.get(level)!.push(item);
     });
 
-    // Calculate layout
-    dagre.layout(dagreGraph);
+    // Calculate positions
+    const categories = Array.from(categoryGroups.keys());
+    let categoryX = 0;
 
-    // Apply positions from dagre
-    nodes.forEach((node) => {
-        const nodeWithPosition = dagreGraph.node(node.id);
-        node.position = {
-            x: nodeWithPosition.x - NODE_WIDTH / 2,
-            y: nodeWithPosition.y - NODE_HEIGHT / 2,
-        };
+    categories.forEach((category, categoryIndex) => {
+        const levelMap = categoryGroups.get(category)!;
+        const levelsInCategory = Array.from(levelMap.keys()).sort((a, b) => a - b);
+
+        // Find max items in any level for this category to determine width
+        const maxItemsInLevel = Math.max(...levelsInCategory.map(level => levelMap.get(level)!.length));
+        const categoryWidth = maxItemsInLevel * (NODE_WIDTH + WITHIN_CATEGORY_SPACING);
+
+        levelsInCategory.forEach((level) => {
+            const itemsInLevel = levelMap.get(level)!;
+            const startX = categoryX + (categoryWidth - itemsInLevel.length * (NODE_WIDTH + WITHIN_CATEGORY_SPACING)) / 2;
+
+            itemsInLevel.forEach((item, index) => {
+                nodes.push({
+                    id: item.id,
+                    data: {
+                        label: item.title,
+                        category: item.category,
+                    },
+                    position: {
+                        x: startX + index * (NODE_WIDTH + WITHIN_CATEGORY_SPACING),
+                        y: level * LEVEL_SPACING,
+                    },
+                    sourcePosition: Position.Bottom,
+                    targetPosition: Position.Top,
+                    style: {
+                        width: NODE_WIDTH,
+                        background: '#fff',
+                        border: '1px solid #9ca3af',
+                        borderRadius: '8px',
+                        padding: '10px',
+                        textAlign: 'center',
+                        fontWeight: 'bold',
+                        fontSize: '13px',
+                    },
+                });
+
+                // Add edges
+                item.dependencies.forEach((depId) => {
+                    edges.push({
+                        id: `${depId}-${item.id}`,
+                        source: depId,
+                        target: item.id,
+                        type: 'smoothstep',
+                        animated: false,
+                        markerEnd: {
+                            type: MarkerType.ArrowClosed,
+                            width: 20,
+                            height: 20,
+                        },
+                        style: {
+                            strokeDasharray: '5 5',
+                            strokeWidth: 2,
+                            stroke: '#9ca3af',
+                        },
+                    });
+                });
+            });
+        });
+
+        categoryX += categoryWidth + CATEGORY_SPACING;
     });
 
     return { nodes, edges };
@@ -173,6 +210,11 @@ export default function RoadmapGraph({ items = INITIAL_ROADMAP }: RoadmapGraphPr
 
                 let style = { ...node.style };
 
+                // Base style
+                style.background = '#fff';
+                style.border = '1px solid #9ca3af';
+
+                // Override with progress status
                 switch (status) {
                     case 'completed':
                         style.background = '#dcfce7'; // green-100
@@ -182,12 +224,7 @@ export default function RoadmapGraph({ items = INITIAL_ROADMAP }: RoadmapGraphPr
                         style.background = '#dbeafe'; // blue-100
                         style.border = '2px solid #3b82f6'; // blue-500
                         break;
-                    default:
-                        style.background = '#fff';
-                        style.border = '1px solid #9ca3af'; // gray-400
-                        break;
                 }
-
 
                 // Apply hover effects
                 if (hoveredNodeId) {
@@ -214,9 +251,6 @@ export default function RoadmapGraph({ items = INITIAL_ROADMAP }: RoadmapGraphPr
             })
         );
     }, [progress, isLoaded, hoveredNodeId, getConnectedNodes, setNodes]);
-
-    // Note: Edge style updates are removed to prevent position shifting
-    // Only nodes will be highlighted on hover
 
     return (
         <div style={{ width: '100%', height: '100%', minHeight: '500px' }}>
