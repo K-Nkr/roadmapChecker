@@ -4,10 +4,11 @@ export interface RoadmapItem {
   description: string;
   requiredOutput: boolean;
   dependencies: string[];
-  category: 'Basic' | 'Framework' | 'Tooling' | 'Language';
+  category: 'Basic' | 'Framework' | 'Tooling' | 'Language' | 'Backend' | 'Database' | 'Testing' | 'DevOps';
 }
 
 export const INITIAL_ROADMAP: RoadmapItem[] = [
+  // Basic
   {
     id: 'html-css',
     title: 'HTML & CSS',
@@ -16,14 +17,7 @@ export const INITIAL_ROADMAP: RoadmapItem[] = [
     dependencies: [],
     category: 'Basic',
   },
-  {
-    id: 'git',
-    title: 'Git & GitHub',
-    description: 'バージョン管理システム。コードの変更履歴を記録し、チーム開発の基礎を身につけます。',
-    requiredOutput: false,
-    dependencies: ['html-css'],
-    category: 'Tooling',
-  },
+  // Language
   {
     id: 'javascript',
     title: 'JavaScript',
@@ -33,20 +27,30 @@ export const INITIAL_ROADMAP: RoadmapItem[] = [
     category: 'Language',
   },
   {
-    id: 'react',
-    title: 'React',
-    description: 'ユーザーインターフェースを構築するためのJavaScriptライブラリ。コンポーネント指向、State管理を学びます。',
-    requiredOutput: true,
-    dependencies: ['javascript', 'git'],
-    category: 'Framework',
-  },
-  {
     id: 'typescript',
     title: 'TypeScript',
     description: 'JavaScriptに静的型付けを加えたスーパーセット。大規模開発に必須の型安全性を学びます。',
     requiredOutput: false,
     dependencies: ['javascript'],
     category: 'Language',
+  },
+  // Tooling
+  {
+    id: 'git',
+    title: 'Git & GitHub',
+    description: 'バージョン管理システム。コードの変更履歴を記録し、チーム開発の基礎を身につけます。',
+    requiredOutput: false,
+    dependencies: ['html-css'],
+    category: 'Tooling',
+  },
+  // Framework (Frontend)
+  {
+    id: 'react',
+    title: 'React',
+    description: 'ユーザーインターフェースを構築するためのJavaScriptライブラリ。コンポーネント指向、State管理を学びます。',
+    requiredOutput: true,
+    dependencies: ['javascript', 'git'],
+    category: 'Framework',
   },
   {
     id: 'nextjs',
@@ -63,5 +67,57 @@ export const INITIAL_ROADMAP: RoadmapItem[] = [
     requiredOutput: false,
     dependencies: ['html-css'],
     category: 'Tooling',
+  },
+  // Backend
+  {
+    id: 'nodejs',
+    title: 'Node.js API',
+    description: 'サーバーサイドJavaScriptランタイム。Next.jsのAPI RoutesまたはExpressを用いてREST API構築を学びます。',
+    requiredOutput: true,
+    dependencies: ['javascript'],
+    category: 'Backend',
+  },
+  // Database
+  {
+    id: 'postgresql',
+    title: 'PostgreSQL',
+    description: '堅牢なオープンソースのリレーショナルデータベース。SQLの基礎とデータモデリングを学びます。',
+    requiredOutput: false,
+    dependencies: ['nodejs'],
+    category: 'Database',
+  },
+  {
+    id: 'prisma',
+    title: 'Prisma',
+    description: '次世代ORM。型安全なデータベースアクセスとマイグレーション管理を学びます。',
+    requiredOutput: true,
+    dependencies: ['postgresql', 'typescript'],
+    category: 'Database',
+  },
+  // Testing
+  {
+    id: 'jest',
+    title: 'Jest / Vitest',
+    description: 'JavaScriptテストフレームワーク。単体テストの書き方とTDD（テスト駆動開発）の基礎を学びます。',
+    requiredOutput: true,
+    dependencies: ['javascript'],
+    category: 'Testing',
+  },
+  // DevOps / Deployment
+  {
+    id: 'github-actions',
+    title: 'GitHub Actions',
+    description: 'CI/CDプラットフォーム。テストの自動実行やリントチェックの自動化を構築します。',
+    requiredOutput: false,
+    dependencies: ['git', 'jest'],
+    category: 'DevOps',
+  },
+  {
+    id: 'vercel',
+    title: 'Vercel Deployment',
+    description: 'Next.jsに最適化されたホスティングプラットフォーム。本番環境へのデプロイと環境変数の管理を学びます。',
+    requiredOutput: true,
+    dependencies: ['nextjs', 'git'],
+    category: 'DevOps',
   },
 ];
