@@ -12,8 +12,8 @@ import ReactFlow, {
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import { INITIAL_ROADMAP, RoadmapItem } from '../data/roadmap';
+import ItemDetailModal from './ItemDetailModal';
 import { useRoadmapProgress } from '../hooks/useRoadmapProgress';
-import { useRouter } from 'next/navigation';
 
 const NODE_WIDTH = 180;
 const NODE_HEIGHT = 80;
@@ -91,8 +91,10 @@ export default function RoadmapGraph({ items = INITIAL_ROADMAP }: RoadmapGraphPr
     const { nodes: initialNodes, edges: initialEdges } = useMemo(() => getLayoutedElements(items), [items]);
     const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
     const [edges, , onEdgesChange] = useEdgesState(initialEdges);
-    const { progress, isLoaded } = useRoadmapProgress();
-    const router = useRouter();
+    const { progress, updateProgress, isLoaded } = useRoadmapProgress();
+
+    const [selectedNodeId, setSelectedNodeId] = React.useState<string | null>(null);
+    const [isModalOpen, setIsModalOpen] = React.useState(false);
 
     // Reset nodes when items change
     useEffect(() => {
@@ -100,8 +102,18 @@ export default function RoadmapGraph({ items = INITIAL_ROADMAP }: RoadmapGraphPr
     }, [initialNodes, setNodes]);
 
     const onNodeClick = (_: React.MouseEvent, node: Node) => {
-        router.push(`/items/${node.id}`);
+        setSelectedNodeId(node.id);
+        setIsModalOpen(true);
     };
+
+    const handleSave = (id: string, data: any) => {
+        updateProgress(id, data);
+        setIsModalOpen(false);
+    };
+
+    const selectedItem = useMemo(() =>
+        items.find(item => item.id === selectedNodeId) || null
+        , [selectedNodeId, items]);
 
     // Update node styles based on progress
     useEffect(() => {
@@ -150,6 +162,13 @@ export default function RoadmapGraph({ items = INITIAL_ROADMAP }: RoadmapGraphPr
                 <Background />
                 <Controls />
             </ReactFlow>
+            <ItemDetailModal
+                item={selectedItem}
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                onSave={handleSave}
+                initialData={selectedNodeId ? progress[selectedNodeId] : undefined}
+            />
         </div>
     );
 }

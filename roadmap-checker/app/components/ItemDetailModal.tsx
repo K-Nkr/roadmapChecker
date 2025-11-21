@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { RoadmapItem } from '../data/roadmap';
-import { X } from 'lucide-react';
+import { X, ExternalLink } from 'lucide-react';
 import { ItemProgress } from '../hooks/useRoadmapProgress';
+import Link from 'next/link';
 
 interface ItemDetailModalProps {
     item: RoadmapItem | null;
@@ -78,7 +79,16 @@ export default function ItemDetailModal({ item, isOpen, onClose, onSave, initial
                         {item.category}
                     </span>
                 </div>
-                <p className="text-gray-700 dark:text-gray-300 mb-6">{item.description}</p>
+                <p className="text-gray-700 dark:text-gray-300 mb-4">{item.description}</p>
+
+                <div className="mb-6">
+                    <Link
+                        href={`/items/${item.id}`}
+                        className="inline-flex items-center text-blue-600 hover:underline dark:text-blue-400"
+                    >
+                        詳細・チュートリアルを見る <ExternalLink size={16} className="ml-1" />
+                    </Link>
+                </div>
 
                 <div className="space-y-4">
                     <div>
