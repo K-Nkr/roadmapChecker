@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo, useEffect } from 'react';
+import React, { useMemo, useEffect, useState, useCallback } from 'react';
 import ReactFlow, {
     Background,
     Controls,
@@ -12,51 +12,36 @@ import ReactFlow, {
     MarkerType,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
+import dagre from 'dagre';
 import { INITIAL_ROADMAP, RoadmapItem } from '../data/roadmap';
 import ItemDetailModal from './ItemDetailModal';
 import { useRoadmapProgress } from '../hooks/useRoadmapProgress';
 
 const NODE_WIDTH = 180;
 const NODE_HEIGHT = 80;
-const X_SPACING = 250;
-const Y_SPACING = 150;
 
-// Simple layout algorithm based on dependency depth
+// Dagre-based automatic layout
 const getLayoutedElements = (items: RoadmapItem[]) => {
+    const dagreGraph = new dagre.graphlib.Graph();
+    dagreGraph.setDefaultEdgeLabel(() => ({}));
+    dagreGraph.setGraph({
+        rankdir: 'TB', // Top to Bottom
+        nodesep: 100,
+        ranksep: 150,
+        edgesep: 50,
+    });
+
     const nodes: Node[] = [];
     const edges: Edge[] = [];
-    const itemMap = new Map(items.map((item) => [item.id, item]));
-    const levels = new Map<string, number>();
 
-    const getLevel = (id: string): number => {
-        if (levels.has(id)) return levels.get(id)!;
-        const item = itemMap.get(id);
-        if (!item || item.dependencies.length === 0) {
-            levels.set(id, 0);
-            return 0;
-        }
-        const parentLevels = item.dependencies.map(getLevel);
-        const level = Math.max(...parentLevels) + 1;
-        levels.set(id, level);
-        return level;
-    };
-
-    items.forEach((item) => getLevel(item.id));
-
-    const levelCounts = new Map<number, number>();
-
+    // Add nodes to dagre graph
     items.forEach((item) => {
-        const level = levels.get(item.id)!;
-        const count = levelCounts.get(level) || 0;
-        levelCounts.set(level, count + 1);
+        dagreGraph.setNode(item.id, { width: NODE_WIDTH, height: NODE_HEIGHT });
 
         nodes.push({
             id: item.id,
             data: { label: item.title },
-            position: {
-                x: count * X_SPACING,
-                y: level * Y_SPACING,
-            },
+            position: { x: 0, y: 0 }, // Will be set by dagre
             sourcePosition: Position.Bottom,
             targetPosition: Position.Top,
             style: {
@@ -70,7 +55,9 @@ const getLayoutedElements = (items: RoadmapItem[]) => {
             },
         });
 
+        // Add edges
         item.dependencies.forEach((depId) => {
+            dagreGraph.setEdge(depId, item.id);
             edges.push({
                 id: `${depId}-${item.id}`,
                 source: depId,
@@ -85,9 +72,22 @@ const getLayoutedElements = (items: RoadmapItem[]) => {
                 style: {
                     strokeDasharray: '5 5',
                     strokeWidth: 2,
+                    stroke: '#9ca3af',
                 },
             });
         });
+    });
+
+    // Calculate layout
+    dagre.layout(dagreGraph);
+
+    // Apply positions from dagre
+    nodes.forEach((node) => {
+        const nodeWithPosition = dagreGraph.node(node.id);
+        node.position = {
+            x: nodeWithPosition.x - NODE_WIDTH / 2,
+            y: nodeWithPosition.y - NODE_HEIGHT / 2,
+        };
     });
 
     return { nodes, edges };
@@ -100,16 +100,18 @@ interface RoadmapGraphProps {
 export default function RoadmapGraph({ items = INITIAL_ROADMAP }: RoadmapGraphProps) {
     const { nodes: initialNodes, edges: initialEdges } = useMemo(() => getLayoutedElements(items), [items]);
     const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
-    const [edges, , onEdgesChange] = useEdgesState(initialEdges);
+    const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
     const { progress, updateProgress, isLoaded } = useRoadmapProgress();
 
     const [selectedNodeId, setSelectedNodeId] = React.useState<string | null>(null);
     const [isModalOpen, setIsModalOpen] = React.useState(false);
+    const [hoveredNodeId, setHoveredNodeId] = useState<string | null>(null);
 
     // Reset nodes when items change
     useEffect(() => {
         setNodes(initialNodes);
-    }, [initialNodes, setNodes]);
+        setEdges(initialEdges);
+    }, [initialNodes, initialEdges, setNodes, setEdges]);
 
     const onNodeClick = (_: React.MouseEvent, node: Node) => {
         setSelectedNodeId(node.id);
@@ -125,14 +127,49 @@ export default function RoadmapGraph({ items = INITIAL_ROADMAP }: RoadmapGraphPr
         items.find(item => item.id === selectedNodeId) || null
         , [selectedNodeId, items]);
 
-    // Update node styles based on progress
+    // Handle node hover
+    const onNodeMouseEnter = useCallback((_: React.MouseEvent, node: Node) => {
+        setHoveredNodeId(node.id);
+    }, []);
+
+    const onNodeMouseLeave = useCallback(() => {
+        setHoveredNodeId(null);
+    }, []);
+
+    // Get connected node IDs for highlighting
+    const getConnectedNodes = useCallback((nodeId: string | null) => {
+        if (!nodeId) return new Set<string>();
+
+        const connected = new Set<string>([nodeId]);
+        const item = items.find(i => i.id === nodeId);
+
+        // Add dependencies (incoming)
+        if (item) {
+            item.dependencies.forEach(dep => connected.add(dep));
+        }
+
+        // Add dependents (outgoing)
+        items.forEach(i => {
+            if (i.dependencies.includes(nodeId)) {
+                connected.add(i.id);
+            }
+        });
+
+        return connected;
+    }, [items]);
+
+    // Update node styles based on progress and hover
     useEffect(() => {
         if (!isLoaded) return;
+
+        const connectedNodes = getConnectedNodes(hoveredNodeId);
 
         setNodes((nds) =>
             nds.map((node) => {
                 const itemProgress = progress[node.id];
                 const status = itemProgress?.status || 'not-started';
+                const isConnected = connectedNodes.has(node.id);
+                const isHovered = node.id === hoveredNodeId;
 
                 let style = { ...node.style };
 
@@ -151,13 +188,58 @@ export default function RoadmapGraph({ items = INITIAL_ROADMAP }: RoadmapGraphPr
                         break;
                 }
 
+                // Apply hover effects
+                if (hoveredNodeId) {
+                    if (isHovered) {
+                        style.boxShadow = '0 0 0 3px rgba(59, 130, 246, 0.5)';
+                        style.transform = 'scale(1.05)';
+                        style.transition = 'all 0.2s';
+                    } else if (isConnected) {
+                        style.opacity = '1';
+                    } else {
+                        style.opacity = '0.3';
+                    }
+                }
+
                 return {
                     ...node,
                     style,
                 };
             })
         );
-    }, [progress, isLoaded, setNodes]);
+    }, [progress, isLoaded, hoveredNodeId, getConnectedNodes, setNodes]);
+
+    // Update edge styles based on hover
+    useEffect(() => {
+        const connectedNodes = getConnectedNodes(hoveredNodeId);
+
+        setEdges((eds) =>
+            eds.map((edge) => {
+                const isConnected = connectedNodes.has(edge.source) && connectedNodes.has(edge.target);
+
+                let style = {
+                    strokeDasharray: '5 5',
+                    strokeWidth: 2,
+                    stroke: '#9ca3af',
+                };
+
+                if (hoveredNodeId) {
+                    if (isConnected) {
+                        style.stroke = '#3b82f6';
+                        style.strokeWidth = 3;
+                    } else {
+                        style.stroke = '#d1d5db';
+                    }
+                }
+
+                return {
+                    ...edge,
+                    style,
+                    animated: isConnected && !!hoveredNodeId,
+                };
+            })
+        );
+    }, [hoveredNodeId, getConnectedNodes, setEdges]);
 
     return (
         <div style={{ width: '100%', height: '100%', minHeight: '500px' }}>
@@ -167,6 +249,8 @@ export default function RoadmapGraph({ items = INITIAL_ROADMAP }: RoadmapGraphPr
                 onNodesChange={onNodesChange}
                 onEdgesChange={onEdgesChange}
                 onNodeClick={onNodeClick}
+                onNodeMouseEnter={onNodeMouseEnter}
+                onNodeMouseLeave={onNodeMouseLeave}
                 fitView
             >
                 <Background />
