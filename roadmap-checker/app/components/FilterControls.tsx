@@ -13,7 +13,7 @@ interface FilterControlsProps {
     onClearFilters: () => void;
 }
 
-const CATEGORIES = ['Basic', 'Language', 'Framework', 'Tooling', 'Backend', 'Database', 'Testing', 'DevOps'];
+const CATEGORIES = ['Basic', 'Language', 'Framework', 'Backend', 'Database', 'Testing', 'DevOps'];
 const STATUSES = [
     { value: 'not-started', label: '未着手' },
     { value: 'in-progress', label: '学習中' },
@@ -70,8 +70,8 @@ export default function FilterControls({
                             key={category}
                             onClick={() => toggleCategory(category)}
                             className={`px-3 py-1 rounded-full text-sm transition-colors ${selectedCategories.includes(category)
-                                    ? 'bg-blue-600 text-white'
-                                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600'
+                                ? 'bg-blue-600 text-white'
+                                : 'bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600'
                                 }`}
                         >
                             {category}
@@ -89,8 +89,8 @@ export default function FilterControls({
                             key={status.value}
                             onClick={() => toggleStatus(status.value)}
                             className={`px-3 py-1 rounded-full text-sm transition-colors ${selectedStatuses.includes(status.value)
-                                    ? 'bg-green-600 text-white'
-                                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600'
+                                ? 'bg-green-600 text-white'
+                                : 'bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600'
                                 }`}
                         >
                             {status.label}

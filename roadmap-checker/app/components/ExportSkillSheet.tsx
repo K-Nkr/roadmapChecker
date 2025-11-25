@@ -32,7 +32,7 @@ export default function ExportSkillSheet() {
         markdown += `## 完了した技術スタック (${completedItems.length}件)\n\n`;
 
         // Group by category
-        const categories = ['Basic', 'Language', 'Framework', 'Tooling', 'Backend', 'Database', 'Testing', 'DevOps'];
+        const categories = ['Basic', 'Language', 'Framework', 'Backend', 'Database', 'Testing', 'DevOps'];
 
         categories.forEach(category => {
             const categoryItems = completedItems.filter(item => item.category === category);
