@@ -14,7 +14,7 @@ import ReactFlow, {
 import 'reactflow/dist/style.css';
 import { INITIAL_ROADMAP, RoadmapItem } from '../data/roadmap';
 import ItemDetailModal from './ItemDetailModal';
-import { useRoadmapProgress } from '../hooks/useRoadmapProgress';
+import { useRoadmapProgress, ItemProgress } from '../hooks/useRoadmapProgress';
 
 const NODE_WIDTH = 180;
 const NODE_HEIGHT = 80;
@@ -102,7 +102,7 @@ const getLayoutedElements = (items: RoadmapItem[]) => {
                 });
 
                 // Add edges
-                item.dependencies.forEach((depId) => {
+                item.dependencies.forEach((depId: string) => {
                     edges.push({
                         id: `${depId}-${item.id}`,
                         source: depId,
@@ -155,7 +155,7 @@ export default function RoadmapGraph({ items = INITIAL_ROADMAP }: RoadmapGraphPr
         setIsModalOpen(true);
     };
 
-    const handleSave = (id: string, data: any) => {
+    const handleSave = (id: string, data: Partial<ItemProgress>) => {
         updateProgress(id, data);
         setIsModalOpen(false);
     };
@@ -182,7 +182,7 @@ export default function RoadmapGraph({ items = INITIAL_ROADMAP }: RoadmapGraphPr
 
         // Add dependencies (incoming)
         if (item) {
-            item.dependencies.forEach(dep => connected.add(dep));
+            item.dependencies.forEach((dep: string) => connected.add(dep));
         }
 
         // Add dependents (outgoing)
