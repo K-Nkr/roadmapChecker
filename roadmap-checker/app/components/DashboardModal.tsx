@@ -13,17 +13,24 @@ interface DashboardModalProps {
 export default function DashboardModal({ isOpen, onClose, progress }: DashboardModalProps) {
     if (!isOpen) return null;
 
+    // Helper function to get all items including children
+    const getAllItems = (items: RoadmapItem[]): RoadmapItem[] => {
+        return items.flatMap(item => [item, ...(item.children || [])]);
+    };
+
+    const allItems = getAllItems(INITIAL_ROADMAP);
+
     // Calculate Overall Progress
-    const totalItems = INITIAL_ROADMAP.length;
-    const completedItems = INITIAL_ROADMAP.filter(
+    const totalItems = allItems.length;
+    const completedItems = allItems.filter(
         (item) => progress[item.id]?.status === 'completed'
     ).length;
     const overallPercentage = Math.round((completedItems / totalItems) * 100) || 0;
 
     // Calculate Category Progress
-    const categories = Array.from(new Set(INITIAL_ROADMAP.map((item) => item.category)));
+    const categories = Array.from(new Set(allItems.map((item) => item.category)));
     const categoryProgress = categories.map((category) => {
-        const itemsByCategory = INITIAL_ROADMAP.filter((item) => item.category === category);
+        const itemsByCategory = allItems.filter((item) => item.category === category);
         const completedByCategory = itemsByCategory.filter(
             (item) => progress[item.id]?.status === 'completed'
         ).length;
