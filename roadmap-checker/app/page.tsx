@@ -1,16 +1,62 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import RoadmapGraph from "./components/RoadmapGraph";
 import DataManagement from "./components/DataManagement";
 import ThemeToggle from "./components/ThemeToggle";
 import DashboardModal from "./components/DashboardModal";
+import FilterControls from "./components/FilterControls";
 import { useRoadmapProgress } from "./hooks/useRoadmapProgress";
+import { INITIAL_ROADMAP } from "./data/roadmap";
 import { BarChart3 } from 'lucide-react';
 
 export default function Home() {
   const [isDashboardOpen, setIsDashboardOpen] = useState(false);
   const { progress } = useRoadmapProgress();
+
+  // Filter states
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
+
+  // Filter roadmap items
+  const filteredItems = useMemo(() => {
+    let items = INITIAL_ROADMAP;
+
+    // Apply search filter
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      items = items.filter(item =>
+        item.title.toLowerCase().includes(query) ||
+        item.description.toLowerCase().includes(query) ||
+        (item.children && item.children.some(child =>
+          child.title.toLowerCase().includes(query) ||
+          child.description.toLowerCase().includes(query)
+        ))
+      );
+    }
+
+    // Apply category filter
+    if (selectedCategories.length > 0) {
+      items = items.filter(item => selectedCategories.includes(item.category));
+    }
+
+    // Apply status filter
+    if (selectedStatuses.length > 0) {
+      items = items.filter(item => {
+        const itemStatus = progress[item.id]?.status || 'not-started';
+        return selectedStatuses.includes(itemStatus);
+      });
+    }
+
+    return items;
+  }, [searchQuery, selectedCategories, selectedStatuses, progress]);
+
+  const clearFilters = () => {
+    setSearchQuery('');
+    setSelectedCategories([]);
+    setSelectedStatuses([]);
+  };
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-between p-4 md:p-24 dark:bg-gray-900 dark:text-white">
@@ -29,8 +75,18 @@ export default function Home() {
         </div>
       </div>
 
+      <FilterControls
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        selectedCategories={selectedCategories}
+        onCategoryChange={setSelectedCategories}
+        selectedStatuses={selectedStatuses}
+        onStatusChange={setSelectedStatuses}
+        onClearFilters={clearFilters}
+      />
+
       <div className="w-full h-[500px] md:h-[600px] border border-gray-300 rounded-lg overflow-hidden bg-gray-50">
-        <RoadmapGraph />
+        <RoadmapGraph items={filteredItems} />
       </div>
 
       <DashboardModal
